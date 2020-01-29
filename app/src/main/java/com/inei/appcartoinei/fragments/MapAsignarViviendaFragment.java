@@ -42,6 +42,7 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.maps.android.data.kml.KmlLayer;
 import com.inei.appcartoinei.R;
 import com.inei.appcartoinei.modelo.DAO.Data;
 import com.inei.appcartoinei.modelo.DAO.DataBaseHelper;
@@ -49,6 +50,7 @@ import com.inei.appcartoinei.modelo.DAO.DataBaseHelper;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.spatialite.database.SQLiteDatabase;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -238,6 +240,15 @@ public class MapAsignarViviendaFragment extends Fragment implements OnMapReadyCa
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
                 }
             }
+        }
+
+        try {
+            KmlLayer layer = new KmlLayer(mgoogleMap, R.raw.barberia2, getContext());
+            layer.addLayerToMap();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
    }
 

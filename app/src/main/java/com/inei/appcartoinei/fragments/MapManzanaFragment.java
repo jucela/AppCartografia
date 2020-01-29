@@ -47,6 +47,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.maps.android.data.kml.KmlContainer;
+import com.google.maps.android.data.kml.KmlLayer;
+import com.google.maps.android.data.kml.KmlPolygon;
 import com.inei.appcartoinei.R;
 import com.inei.appcartoinei.modelo.DAO.Data;
 import com.inei.appcartoinei.modelo.DAO.DataBaseHelper;
@@ -55,11 +58,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.spatialite.database.SQLiteDatabase;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.google.maps.android.SphericalUtil;
 
 
 public class MapManzanaFragment extends Fragment implements OnMapReadyCallback,GoogleMap.OnMapClickListener {
@@ -191,7 +198,11 @@ public class MapManzanaFragment extends Fragment implements OnMapReadyCallback,G
         fab1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                  exportarManzana();
+                  //exportarManzana();
+                Toast.makeText(getContext(),"Área:"+redondearDecimales(SphericalUtil.computeArea(listPoints),2)+" m²",Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(),"Puntos:"+SphericalUtil.computeLength(listPoints),Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(),"Área 2:"+SphericalUtil.computeSignedArea(listPoints),Toast.LENGTH_LONG).show();
+
             }
         });
 
@@ -258,6 +269,7 @@ public class MapManzanaFragment extends Fragment implements OnMapReadyCallback,G
                     polygono.setStrokeJointType(JointType.ROUND);
                 }
             }
+
         }
         googleMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
             @Override
@@ -265,12 +277,13 @@ public class MapManzanaFragment extends Fragment implements OnMapReadyCallback,G
                 Toast.makeText(getContext(),"x",Toast.LENGTH_SHORT).show();
             }
         });
-
         /*CREAR POLIGONO*/
         poligon = googleMap.addPolygon(new PolygonOptions()
                 .add(new LatLng(0, 0), new LatLng(0, 0), new LatLng(0, 0))
                 .fillColor(Color.GREEN)
                 .strokeWidth(5));
+        /*MOSTRAR KML*/
+        mostrarKML(mgoogleMap);
     }
 
     @Override
@@ -640,6 +653,45 @@ public class MapManzanaFragment extends Fragment implements OnMapReadyCallback,G
 
     }
 
+    public static double redondearDecimales(double valorInicial, int numeroDecimales) {
+        double parteEntera, resultado;
+        resultado = valorInicial;
+        parteEntera = Math.floor(resultado);
+        resultado=(resultado-parteEntera)*Math.pow(10, numeroDecimales);
+        resultado=Math.round(resultado);
+        resultado=(resultado/Math.pow(10, numeroDecimales))+parteEntera;
+        return resultado;
+    }
+
+    private KmlPolygon createRegularPolygon() {
+        List<LatLng> outerCoordinates = new ArrayList<>();
+        outerCoordinates.add(new LatLng(-12.0673099, -77.0471592));
+        outerCoordinates.add(new LatLng(-12.0680286, -77.0462526));
+        outerCoordinates.add(new LatLng(-12.0671184, -77.0454989));
+        outerCoordinates.add(new LatLng(-12.0673099, -77.0471592));
+        List<List<LatLng>> innerCoordinates = new ArrayList<>();
+        List<LatLng> innerHole = new ArrayList<>();
+        innerHole.add(new LatLng(-12.0680286, -77.0462526));
+        innerHole.add(new LatLng(-12.0673099, -77.0471592));
+        innerHole.add(new LatLng(-12.0680286, -77.0462526));
+        innerCoordinates.add(innerHole);
+        return new KmlPolygon(outerCoordinates, innerCoordinates);
+    }
+    private void mostrarKML(GoogleMap xgoogleMap){
+        try {
+            KmlLayer layer = new KmlLayer(xgoogleMap, R.raw.barberia2, getContext());
+            layer.addLayerToMap();
+            for (KmlContainer container : layer.getContainers()) {
+                if (container.hasProperty("name")) {
+                    Toast.makeText(getContext(),"Nombrex:"+container.getProperty("name"),Toast.LENGTH_LONG).show();
+                }
+            }
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 
 
